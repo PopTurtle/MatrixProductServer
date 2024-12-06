@@ -1,9 +1,10 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <mman.h>
+#include <sys/mman.h>
 
 #define PIPE_NAME "fifo_server_mp"
 
@@ -36,7 +37,7 @@ void listen(request *r) {
 void worker_a(request r) {
 	// Calcule la taille du segment de memoire partager puis le creer
 	// Les matrices sont les pointeurs de tableaux a, b et c
-	size_t mmap_size = (r.am * r.an + r.bm * r.bn + r.an * r.bm) * sizeof(int)
+	size_t mmap_size = (r.am * r.an + r.bm * r.bn + r.an * r.bm) * sizeof(int);
 	int *a = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 	if (a == MAP_FAILED) {
 		eperror("mmap");
@@ -69,6 +70,7 @@ int main(void) {
 		switch (fork()) {
 			case -1:
 				eperror("fork");
+				break;
 			case 0:
 				worker_a(current_request);
 				break;

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stats.h>
@@ -28,7 +29,7 @@ int main(void) {
     int response_fd = open(response_pipe_name, O_RDONLY);
     if (response_fd == -1) {
         perror("open");
-        unlink(mkfifo);
+        unlink(response_pipe_name);
         exit(EXIT_FAILURE);
     }
 
