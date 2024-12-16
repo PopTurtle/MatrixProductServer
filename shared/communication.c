@@ -1,9 +1,3 @@
-#include <fcntl.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-
 #include "communication.h"
 
 #define REQUEST_SIZE (4 * sizeof(int) + sizeof(pid_t))

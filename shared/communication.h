@@ -4,6 +4,13 @@
 #define SERVER_PIPE_NAME "fifo_server_mp_89716355745231"
 #define RESPONSE_PIPE_PREFIX "response_mp_376517187_"
 
+#include <fcntl.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+
 // Structure utilisée pour les requetes
 typedef struct request request;
 
