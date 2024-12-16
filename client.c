@@ -2,57 +2,68 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/stats.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
-#define SERVER_PIPE_NAME "fifo_server_mp"
+#include "communication.h"
 
-#define RESPONSE_PIPE_NAME "response_mp"
-#define RESPONSE_PIPE_NAME_BUFF_SIZE 32
-
-void eperror(const char *s) {
-    perror(s);
+#define EPERROR(funstr)                                                        \
+    perror(funstr);                                                            \
     exit(EXIT_FAILURE);
-}
 
+#include <unistd.h>
 int main(void) {
     // Recupere le pid du processus courant
     pid_t pid = getpid();
 
     // Creer le tube de reponse
-    const char response_pipe_name[RESPONSE_PIPE_NAME_BUFF_SIZE];
-    sprintf(response_pipe_name, RESPONSE_PIPE_NAME "_%ld", (long) pid);
-
-    if (mkfifo(response_pipe_name, S_IRUSR | S_IWUSR) == -1) {
-        eperror(mkfifo);
-    }
-
-    int response_fd = open(response_pipe_name, O_RDONLY);
-    if (response_fd == -1) {
-        perror("open");
-        unlink(response_pipe_name);
-        exit(EXIT_FAILURE);
-    }
-
-    if (unlink(response_pipe_name) == -1) {
-        eperror("unlink");
-    }
-
-    // Ouvre le tube des requetes
-    int request_fd = open(PIPE_NAME, O_WRONLY);
-    if (request_fd == -1) {
-        eperror("open");
-    }
-
-    // Prepare et envoie la requete
-    // Taille des matrice (m * n) et (n * p)
-    int m = 4;
-    int n = 3;
-    int p = 3;
-
-    // Borne superieure des elements à generer
-    int sup = 10;
-
-    // ENVOIE LA REQUETE ICI
+    char response_pipe_n[RESPONSE_PIPE_BUFF_SIZE];
+    response_pipe_name(response_pipe_n, pid);
     
+    if (mkfifo(response_pipe_n, S_IRUSR | S_IWUSR) == -1) {
+        EPERROR("mkfifo");
+    }
+
+    // Ouvre le tube de reponse (puis le ferme en écriture)
+    int fd;
+    pid_t pid_writer = fork();
+    switch (pid_writer) {
+        case -1:
+            EPERROR("fork");
+            unlink(response_pipe_n);
+            return EXIT_FAILURE;
+        case 0:
+            if (open(response_pipe_n, O_WRONLY) == -1) {
+                EPERROR("open");
+            }
+            exit(EXIT_SUCCESS);
+        default:
+            fd = open(response_pipe_n, O_RDONLY);
+            if (fd == -1) {
+                EPERROR("open");
+            }
+    }
+
+    if (waitpid(pid_writer, NULL, 0) == -1) {
+        EPERROR("waitpid");
+    }
+
+    // TEMPORAIRE -----------------------------------------------
+    if (unlink(response_pipe_n) == -1) {
+        EPERROR("unlink");
+    }
+    
+    // Ouvre le tube des requetes
+    int request_fd = open(SERVER_PIPE_NAME, O_WRONLY);
+    if (request_fd == -1) {
+        EPERROR("open");
+    }
+
+    // Prepare la requete
+    request *r = request_from(pid, 3, 4, 3, 10);
+
+    // Envoie la requete
+    send_request(request_fd, r);
+
     return EXIT_SUCCESS;
 }

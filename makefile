@@ -21,7 +21,7 @@ vpath %.h $(dirs)
 
 .PHONY: all clean
 
-all: server
+all: server client
 
 clean:
 	rm *.o
@@ -31,7 +31,11 @@ clean:
 server: server.o communication.o requests_management.o
 	$(CC) $(CFLAGS) $^ -o $@
 
+client: client.o communication.o
+	$(CC) $(CFLAGS) $^ -o $@
+
 
 server.o: server.c communication.h
+client.o: client.c communication.h
 communication.o: communication.c communication.h
 requests_management.o: requests_management.c communication.h
