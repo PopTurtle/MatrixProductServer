@@ -70,9 +70,9 @@ int main(void) {
         EPERROR("waitpid");
     }
     
-    request current_request;
+    request *current_request = request_empty();
 	while (1) {
-		listen_request(fd, &current_request);
+		listen_request(fd, current_request);
 		switch (fork()) {
 			case -1:
 				EPERROR("fork");
@@ -82,7 +82,7 @@ int main(void) {
 					EPERROR("close");
 				}
 				manage_request(current_request);
-				break;
+				exit(EXIT_SUCCESS);
 		}
 	}
 	return EXIT_SUCCESS;
