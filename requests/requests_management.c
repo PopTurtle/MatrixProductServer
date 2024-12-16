@@ -1,5 +1,7 @@
 #include "requests_management.h"
 
-void manage_request([[maybe_unused]] request) {
-
+#include <unistd.h>
+void manage_request(const request *r) {
+    sleep(2);
+    printf("Received request from %ld\n", (long) request_pid(r));
 }
