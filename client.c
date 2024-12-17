@@ -17,7 +17,7 @@ int main(void) {
     pid_t pid = getpid();
 
     // Creer le tube de reponse
-    char response_pipe_n[RESPONSE_PIPE_BUFF_SIZE];
+    char response_pipe_n[RESPONSE_PIPE_NAME_BUFF_SIZE];
     response_pipe_name(response_pipe_n, pid);
     
     if (mkfifo(response_pipe_n, S_IRUSR | S_IWUSR) == -1) {

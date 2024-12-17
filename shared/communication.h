@@ -4,7 +4,7 @@
 #define SERVER_PIPE_NAME "fifo_server_mp_89716355745231"
 #define RESPONSE_PIPE_PREFIX "response_mp_376517187_"
 
-#define RESPONSE_PIPE_BUFF_SIZE 64
+#define RESPONSE_PIPE_NAME_BUFF_SIZE 64
 
 #include <fcntl.h>
 #include <sys/types.h>
