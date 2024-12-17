@@ -24,9 +24,9 @@ vpath %.h $(dirs)
 all: server client
 
 clean:
-	rm *.o
-	rm server
-	rm client
+	rm -f *.o
+	rm -f server
+	rm -f client
 
 
 server: server.o communication.o requests_management.o matrix.o
@@ -38,6 +38,6 @@ client: client.o communication.o
 
 server.o: server.c communication.h
 client.o: client.c communication.h
-communication.o: communication.c communication.h
-requests_management.o: requests_management.c communication.h matrix.h
-matrix.o: matrix.c
+communication.o: communication.c communication.h matrix.h
+requests_management.o: requests_management.c requests_management.h communication.h matrix.h
+matrix.o: matrix.c matrix.h
