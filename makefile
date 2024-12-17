@@ -26,6 +26,7 @@ all: server client
 clean:
 	rm *.o
 	rm server
+	rm client
 
 
 server: server.o communication.o requests_management.o matrix.o
