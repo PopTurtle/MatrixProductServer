@@ -28,7 +28,7 @@ clean:
 	rm server
 
 
-server: server.o communication.o requests_management.o
+server: server.o communication.o requests_management.o matrix.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 client: client.o communication.o
@@ -38,4 +38,5 @@ client: client.o communication.o
 server.o: server.c communication.h
 client.o: client.c communication.h
 communication.o: communication.c communication.h
-requests_management.o: requests_management.c communication.h
+requests_management.o: requests_management.c communication.h matrix.h
+matrix.o: matrix.c
