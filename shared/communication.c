@@ -121,3 +121,50 @@ int listen_request(int r_fd, request *r_out) {
     free(r_str);
     return 0;
 }
+
+
+int send_response(const request *r, const int *mat_a, const int *mat_b, const int *mat_c) {
+    // Recupere les tailles de matrices
+    int dim_a[2];
+    int dim_b[2];
+    int dim_c[2];
+    request_mat_size_a(r, dim_a);
+    request_mat_size_b(r, dim_b);
+    dim_c[0] = dim_a[0];
+    dim_c[1] = dim_b[1];
+
+    // Alloue un buffer de la bonne taille pour les 3 matrices
+    char *buff = malloc(MAT_PROD_SIZE(dim_a[0], dim_a[1], dim_b[1]));
+    if (buff == NULL) {
+        return -1;
+    }
+
+    // Ouvre le tube associer a la requete
+    char pipe_name[RESPONSE_PIPE_NAME_BUFF_SIZE];
+    response_pipe_name(pipe_name, request_pid(r));
+    int response_fd = open(pipe_name, O_RDONLY);
+    if (response_fd == -1) {
+        free(buff);
+        return -1;
+    }
+
+    // Ecris les matrices dans le buffer
+    size_t mat_a_s = MAT_SIZE(dim_a[0], dim_a[1]);
+    size_t mat_b_s = MAT_SIZE(dim_b[0], dim_b[1]);
+    size_t mat_c_s = MAT_SIZE(dim_c[0], dim_c[1]);
+    memcpy(buff, mat_a, mat_a_s);
+    memcpy(buff + mat_a_s, mat_b, mat_b_s);
+    memcpy(buff + mat_a_s + mat_b_s, mat_c, mat_c_s);
+
+    // Ecris le buffer dans le tube
+    if (write(response_fd, buff, mat_a_s + mat_b_s + mat_c_s) == -1) {
+        free(buff);
+        close(response_fd);
+        return -1;
+    }
+
+    // Libere les ressources
+    free(buff);
+    close(response_fd);
+    return 0;
+}

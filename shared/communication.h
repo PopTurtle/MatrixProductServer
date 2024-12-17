@@ -12,6 +12,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <string.h>
+
+#include "matrix.h"
 
 
 // Structure utilisee pour les requetes
@@ -45,5 +48,11 @@ extern int send_request(int r_fd, const request *r);
 // Bloque le processus jusqu'à ce qu'une requete soit correctement lue.
 // Renvoie -1 en cas d'erreur
 extern int listen_request(int r_fd, request *r_out);
+
+
+// Envoie une reponse au client via le tube que le clien a creer au
+// prealable. Renvoie -1 en cas d'erreur
+extern int send_response(const request *r, const int *mat_a, const int *mat_b, const int *mat_c);
+
 
 #endif
