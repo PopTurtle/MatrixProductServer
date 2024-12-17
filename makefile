@@ -32,12 +32,12 @@ clean:
 server: server.o communication.o requests_management.o matrix.o
 	$(CC) $(CFLAGS) $^ -o $@
 
-client: client.o communication.o
+client: client.o communication.o matrix.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 
 server.o: server.c communication.h
-client.o: client.c communication.h
+client.o: client.c communication.h matrix.h
 communication.o: communication.c communication.h matrix.h
 requests_management.o: requests_management.c requests_management.h communication.h matrix.h
 matrix.o: matrix.c matrix.h

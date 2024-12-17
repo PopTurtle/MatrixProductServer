@@ -142,7 +142,7 @@ int send_response(const request *r, const int *mat_a, const int *mat_b, const in
     // Ouvre le tube associer a la requete
     char pipe_name[RESPONSE_PIPE_NAME_BUFF_SIZE];
     response_pipe_name(pipe_name, request_pid(r));
-    int response_fd = open(pipe_name, O_RDONLY);
+    int response_fd = open(pipe_name, O_WRONLY);
     if (response_fd == -1) {
         free(buff);
         return -1;
