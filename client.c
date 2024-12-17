@@ -26,6 +26,13 @@ int read_full_buff(char *buff, size_t size, int fd) {
 }
 
 int main(void) {
+
+    // Gestion des parametres
+    int m = 2;
+    int n = 3;
+    int p = 2;
+    int sup = 7;
+
     // Recupere le pid du processus courant
     pid_t pid = getpid();
 
@@ -68,13 +75,13 @@ int main(void) {
     }
 
     // Prepare la requete
-    request *r = request_from(pid, 3, 4, 3, 10);
+    request *r = request_from(pid, m, n, p , sup);
 
     // Envoie la requete
     send_request(request_fd, r);
 
     // Attends une reponse sur le tube
-    size_t buf_size = MAT_PROD_SIZE(3, 4, 3);
+    size_t buf_size = MAT_PROD_SIZE(m, n, p);
     char *rbuff = malloc(buf_size);
     if (rbuff == NULL) {
         EPERROR("malloc");
@@ -87,9 +94,9 @@ int main(void) {
 
 
     // 
-    print_matrix("MAT A:", rbuff, 3, 4);
-    print_matrix("MAT B:", rbuff + MAT_SIZE(3, 4), 4, 3);
-    print_matrix("MAT C:", rbuff + MAT_SIZE(3, 4) + MAT_SIZE(4, 3), 3, 3);    
+    print_matrix("MAT A:", (const int *) rbuff, m, n);
+    print_matrix("MAT B:", (const int *) (rbuff + MAT_SIZE(m, n)), n, p);
+    print_matrix("MAT C:", (const int *) (rbuff + MAT_SIZE(m, n) + MAT_SIZE(n, p)), m, p);    
 
 
     // TEMPORAIRE -----------------------------------------------

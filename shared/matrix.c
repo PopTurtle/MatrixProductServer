@@ -1,9 +1,15 @@
 #include "matrix.h"
 
-void random_matrix(int *mat, int m, int n, int sup) {
+static int rand_inclusive(int min, int max) {
+    double r = (((double) rand()) - 1) / RAND_MAX;
+    r = (r * (max + 1 - min));
+    return min + (int) r;
+}
+
+void random_matrix(int *mat, int m, int n, int sup, unsigned int seed) {
+    srand(seed);
     for (int i = 0; i < m * n; ++i) {
-        int value = sup; // RANDOM VALUE HERE
-        
+        int value = rand_inclusive(0, sup);
         *(mat + i) = value;
     }
 }
@@ -18,7 +24,7 @@ void print_matrix(const char* name, const int *mat, int m, int n) {
     printf("%s\n", name);
     for (int l = 0; l < m; ++l) {
         for (int r = 0; r < n; ++r) {
-            printf("%d ", *(mat + m * l + r));
+            printf("%d ", *(mat + n * l + r));
         }
         printf("\n");
     }

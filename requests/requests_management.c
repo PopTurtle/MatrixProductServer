@@ -4,16 +4,16 @@
     (sizeof(int) + MAT_PROD_SIZE(m, n, p))
 
 #define SHM_MEETING \
-    ((int *) shm)
+    ((volatile int *) shm)
 
 #define SHM_MAT_A \
-    ((int *) (shm + sizeof(int)));
+    ((volatile int *) (shm + sizeof(int)));
 
 #define SHM_MAT_B \
-    ((int *) (shm + sizeof(int) + MAT_SIZE(dim_a[0], dim_a[1])))
+    ((volatile int *) (shm + sizeof(int) + MAT_SIZE(dim_a[0], dim_a[1])))
 
 #define SHM_MAT_C \
-    ((int *) (shm + sizeof(int) + MAT_SIZE(dim_a[0], dim_a[1]) + MAT_SIZE(dim_b[0], dim_b[1])))
+    ((volatile int *) (shm + sizeof(int) + MAT_SIZE(dim_a[0], dim_a[1]) + MAT_SIZE(dim_b[0], dim_b[1])))
 
 #define STEP_START 0
 #define STEP_MAT_GENERATED 1
@@ -54,7 +54,7 @@ void worker_a(const request *r) {
             worker_b(r, shm);
             exit(EXIT_SUCCESS);
         default:
-            random_matrix((int *) mat_a, dim_a[0], dim_a[1], request_sup(r));
+            random_matrix((int *) mat_a, dim_a[0], dim_a[1], request_sup(r), getpid());
             *meeting = STEP_MAT_GENERATED;
     }
 
@@ -62,7 +62,7 @@ void worker_a(const request *r) {
     while (*meeting != STEP_PRODUCT_ENDED) { ; }
 
     // Transmet le resultat
-    if (send_response(r, (const int *) mat_a, SHM_MAT_B, SHM_MAT_C) == -1) {
+    if (send_response(r, (const int *) mat_a, (const int *) SHM_MAT_B, (const int *) SHM_MAT_C) == -1) {
         fprintf(stderr, "Impossible d'envoyer la reponse\n");
         exit(EXIT_FAILURE);
     }
@@ -76,8 +76,9 @@ void worker_b(const request *r, char *shm) {
     request_mat_size_b(r, dim_b);
     
     volatile int *mat_b = SHM_MAT_B;
-    random_matrix((int *) mat_b, dim_b[0], dim_b[1], request_sup(r));
-
+    
+    random_matrix((int *) mat_b, dim_b[0], dim_b[1], request_sup(r), getpid());
+    
     // Attend que la matrice A soit generee avant de continuer
     volatile int *meeting = SHM_MEETING;
     while (*meeting != STEP_MAT_GENERATED) { ; }

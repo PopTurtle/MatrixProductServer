@@ -1,7 +1,9 @@
 #ifndef MATRIX__H
 #define MATRIX__H
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 // Taille en mémoire d'une matrice de taille m * n
 #define MAT_SIZE(m, n) (sizeof(int) * m * n)
@@ -13,8 +15,9 @@
 
 
 // Genere une matrice de taille m * n a l'emplacement mat, en utilisant
-// des valeurs entieres aleatoires dans l'interval [[0; sup]]
-extern void random_matrix(int *mat, int m, int n, int sup);
+// des valeurs entieres aleatoires dans l'interval [[0; sup]]. seed permet
+// de donner la graine du generateur de valeurs.
+extern void random_matrix(int *mat, int m, int n, int sup, unsigned int seed);
 
 // Realise le produit matriciel de mat_a * mat_b et stocke le résultat dans
 // res. Avec les matrices de tailles mat_a (m * n) et mat_b (n * p), la fonction
