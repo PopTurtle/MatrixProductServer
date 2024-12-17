@@ -4,14 +4,27 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "communication.h"
+#include "matrix.h"
 
 #define EPERROR(funstr)                                                        \
     perror(funstr);                                                            \
     exit(EXIT_FAILURE);
 
-#include <unistd.h>
+int read_full_buff(char *buff, size_t size, int fd) {
+    while (size > 0) {
+        int count = read(fd, buff, size);
+        if (count == -1) {
+            return -1;
+        }
+        buff += count;
+        size -= count;
+    }
+    return 0;
+}
+
 int main(void) {
     // Recupere le pid du processus courant
     pid_t pid = getpid();
@@ -48,11 +61,6 @@ int main(void) {
         EPERROR("waitpid");
     }
 
-    // TEMPORAIRE -----------------------------------------------
-    if (unlink(response_pipe_n) == -1) {
-        EPERROR("unlink");
-    }
-    
     // Ouvre le tube des requetes
     int request_fd = open(SERVER_PIPE_NAME, O_WRONLY);
     if (request_fd == -1) {
@@ -64,6 +72,30 @@ int main(void) {
 
     // Envoie la requete
     send_request(request_fd, r);
+
+    // Attends une reponse sur le tube
+    size_t buf_size = MAT_PROD_SIZE(3, 4, 3);
+    char *rbuff = malloc(buf_size);
+    if (rbuff == NULL) {
+        EPERROR("malloc");
+    }
+
+    if (read_full_buff(rbuff, buf_size, fd) == -1) {
+        EPERROR("read");
+    }
+
+
+
+    // 
+    print_matrix("MAT A:", rbuff, 3, 4);
+    print_matrix("MAT B:", rbuff + MAT_SIZE(3, 4), 4, 3);
+    print_matrix("MAT C:", rbuff + MAT_SIZE(3, 4) + MAT_SIZE(4, 3), 3, 3);    
+
+
+    // TEMPORAIRE -----------------------------------------------
+    if (unlink(response_pipe_n) == -1) {
+        EPERROR("unlink");
+    }
 
     return EXIT_SUCCESS;
 }
