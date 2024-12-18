@@ -86,7 +86,7 @@ int multithreaded_matrix_product(int *res, int *mat_a, int *mat_b, int m, int n,
             pre_arg.j = j;
             *arg = pre_arg;
 
-            if ((errnum = pthread_create(&threads[index], NULL, (runnable) thread_mat_product, arg)) !=0) {
+            if ((errnum = pthread_create(&threads[index], NULL, (runnable) thread_mat_product, arg)) != 0) {
                 fprintf(stderr, "pthread_create: %s\n", strerror(errnum));
                 err = -1;
                 goto join_threads;
