@@ -86,7 +86,7 @@ void worker_b(const request *r, char *shm) {
     // Realise le produit des matrices
     volatile int *mat_a = SHM_MAT_A;
     volatile int *mat_c = SHM_MAT_C;
-    multithreaded_matrix_product((int *) mat_c, (int *) mat_a, (int *) mat_b);
+    multithreaded_matrix_product((int *) mat_c, (int *) mat_a, (int *) mat_b, dim_a[0], dim_a[1], dim_b[1]);
     *meeting = STEP_PRODUCT_ENDED;
 
     exit(EXIT_SUCCESS);
