@@ -14,7 +14,10 @@
     perror(funstr);                                                            \
     exit(EXIT_FAILURE);
 
+
+// Action a executer lorsqu'un signal de terminaison est recu
 void on_sig_term(int);
+
 
 int main(void) {
 	
@@ -69,7 +72,8 @@ int main(void) {
     if (waitpid(pid_writer, NULL, 0) == -1) {
         EPERROR("waitpid");
     }
-    
+
+    // Boucle principale du serveur : ecoute et reagit aux requetes
     request *current_request = request_empty();
 	while (1) {
 		listen_request(fd, current_request);
@@ -81,11 +85,21 @@ int main(void) {
 				if (close(fd) == -1) {
 					EPERROR("close");
 				}
+                #ifndef SERVER_NO_RESPONSE
 				manage_request(current_request);
+                #endif
 				exit(EXIT_SUCCESS);
 		}
+
+        // Attente des zombies
+        pid_t r;
+        while ((r = waitpid(-1, NULL, WNOHANG)) != 0) {
+            if (r == -1) {
+                PERROR("waitpid");
+            }
+        }
 	}
-	return EXIT_SUCCESS;
+	return EXIT_FAILURE;
 }
 
 void on_sig_term([[maybe_unused]] int) {

@@ -50,9 +50,14 @@ extern int send_request(int r_fd, const request *r);
 extern int listen_request(int r_fd, request *r_out);
 
 
-// Envoie une reponse au client via le tube que le clien a creer au
+// Envoie une reponse au client via le tube que le client a creer au
 // prealable. Renvoie -1 en cas d'erreur
 extern int send_response(const request *r, const int *mat_a, const int *mat_b, const int *mat_c);
 
+
+// Recoie une reponse depuis le tube de descripteur fd. Si le tube est vide,
+// l'appel est bloquant
+// Renvoie -1 en cas d'erreur de lecture.
+extern int receive_response(int fd, char *buff, size_t read_size);
 
 #endif

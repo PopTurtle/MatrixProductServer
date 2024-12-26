@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -13,25 +14,39 @@
     perror(funstr);                                                            \
     exit(EXIT_FAILURE);
 
-int read_full_buff(char *buff, size_t size, int fd) {
-    while (size > 0) {
-        int count = read(fd, buff, size);
-        if (count == -1) {
-            return -1;
-        }
-        buff += count;
-        size -= count;
-    }
-    return 0;
+
+// Lis une valeur entiere depuis une chaine de caractere avec atoi.
+// Renvoie -1 en cas d'erreur et associe la valeur de atoi a res
+int get_arg(char *text, int *res) {
+    *res = atoi(text);
+    return *res - 1;
 }
 
-int main(void) {
 
+// Les parametres d'appels, formulés [nom = default_value],  sont les suivants:
+// ./client [m = 2] [n = 2] [p = 2] [sup = 9] [client_name]
+// Si client_name est passé (char *), le client affiche le resultat de sa
+// requete sur la sortie standard avec le préfixe client_name
+int main(int argc, char *argv[]) {
     // Gestion des parametres
-    int m = 2;
-    int n = 3;
-    int p = 2;
-    int sup = 7;
+    int m, n, p, sup;
+    bool print_result;
+    char *name;
+
+    if (argc >= 2 && get_arg(argv[1], &m) == -1) { m = 2; }
+    if (argc >= 3 && get_arg(argv[2], &n) == -1) { n = 2; }
+    if (argc >= 4 && get_arg(argv[3], &p) == -1) { p = 2; }
+    if (argc >= 5 && get_arg(argv[4], &sup) == -1) { sup = 9; }
+
+    if (argc >= 6) {
+        name = argv[5];
+        print_result = true;
+    } else {
+        name = NULL;
+        print_result = false;
+    }
+
+    printf("%d %d %d %d %s\n", m, n, p, sup, name);
 
     // Recupere le pid du processus courant
     pid_t pid = getpid();
@@ -87,16 +102,21 @@ int main(void) {
         EPERROR("malloc");
     }
 
-    if (read_full_buff(rbuff, buf_size, fd) == -1) {
-        EPERROR("read");
+    int *mat_a = (int *) (rbuff);
+    int *mat_b = (int *) (rbuff + m * n);
+    int *mat_c = (int *) (rbuff + m * n + n * p);
+
+    if (receive_response(fd, rbuff, buf_size) == -1) {
+        fprintf(stderr, "Error: Could not receive properly the server response");
     }
 
-
-
-    // 
-    print_matrix("MAT A:", (const int *) rbuff, m, n);
-    print_matrix("MAT B:", (const int *) (rbuff + MAT_SIZE(m, n)), n, p);
-    print_matrix("MAT C:", (const int *) (rbuff + MAT_SIZE(m, n) + MAT_SIZE(n, p)), m, p);    
+    // Affiche les différentes matrices (si demande)
+    if (print_result) {
+        printf("Client: %s\n", name);
+        print_matrix("Matrice A:", mat_a, m, n);
+        print_matrix("Matrice B:", mat_b, n, p);
+        print_matrix("Matrice C:", mat_c, m, p);
+    }
 
 
     // TEMPORAIRE -----------------------------------------------

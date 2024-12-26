@@ -168,3 +168,29 @@ int send_response(const request *r, const int *mat_a, const int *mat_b, const in
     close(response_fd);
     return 0;
 }
+
+
+int __read_full_buff(char *buff, size_t size, int fd) {
+    while (size > 0) {
+        int count = read(fd, buff, size);
+        if (count == -1) {
+            return -1;
+        }
+        buff += count;
+        size -= count;
+    }
+    return 0;
+}
+
+
+int receive_response(int fd, char *buff, size_t read_size) {
+    while (read_size > 0) {
+        int count = read(fd, buff, read_size);
+        if (count == -1) {
+            return -1;
+        }
+        buff += count;
+        read_size -= count;
+    }
+    return 0;
+}
