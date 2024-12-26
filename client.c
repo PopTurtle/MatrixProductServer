@@ -33,10 +33,10 @@ int main(int argc, char *argv[]) {
     bool print_result;
     char *name;
 
-    if (argc >= 2 && get_arg(argv[1], &m) == -1) { m = 2; }
-    if (argc >= 3 && get_arg(argv[2], &n) == -1) { n = 2; }
-    if (argc >= 4 && get_arg(argv[3], &p) == -1) { p = 2; }
-    if (argc >= 5 && get_arg(argv[4], &sup) == -1) { sup = 9; }
+    if (argc < 2 || get_arg(argv[1], &m) == -1) { m = 2; }
+    if (argc < 3 || get_arg(argv[2], &n) == -1) { n = 2; }
+    if (argc < 4 || get_arg(argv[3], &p) == -1) { p = 2; }
+    if (argc < 5 || get_arg(argv[4], &sup) == -1) { sup = 9; }
 
     if (argc >= 6) {
         name = argv[5];
@@ -45,8 +45,6 @@ int main(int argc, char *argv[]) {
         name = NULL;
         print_result = false;
     }
-
-    printf("%d %d %d %d %s\n", m, n, p, sup, name);
 
     // Recupere le pid du processus courant
     pid_t pid = getpid();
@@ -102,9 +100,9 @@ int main(int argc, char *argv[]) {
         EPERROR("malloc");
     }
 
-    int *mat_a = (int *) (rbuff);
-    int *mat_b = (int *) (rbuff + m * n);
-    int *mat_c = (int *) (rbuff + m * n + n * p);
+    int *mat_a = ((int *) rbuff);
+    int *mat_b = ((int *) rbuff + m * n);
+    int *mat_c = ((int *) rbuff + m * n + n * p);
 
     if (receive_response(fd, rbuff, buf_size) == -1) {
         fprintf(stderr, "Error: Could not receive properly the server response");
@@ -112,7 +110,7 @@ int main(int argc, char *argv[]) {
 
     // Affiche les différentes matrices (si demande)
     if (print_result) {
-        printf("Client: %s\n", name);
+        printf("Resultat client \"%s\"\n", name);
         print_matrix("Matrice A:", mat_a, m, n);
         print_matrix("Matrice B:", mat_b, n, p);
         print_matrix("Matrice C:", mat_c, m, p);

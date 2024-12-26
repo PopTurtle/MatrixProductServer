@@ -74,8 +74,8 @@ int multithreaded_matrix_product(int *res, int *mat_a, int *mat_b, int m, int n,
     };
     
     for (int i = 0; i < m; ++i) {
-        for (int j = 0; j < n; ++j) {
-            int index = i * n + j;
+        for (int j = 0; j < p; ++j) {
+            int index = i * p + j;
             tmp_data *arg = malloc(sizeof *arg);
             if (arg == NULL) {
                 perror("malloc");
