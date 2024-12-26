@@ -95,7 +95,7 @@ int main(void) {
         pid_t r;
         while ((r = waitpid(-1, NULL, WNOHANG)) != 0) {
             if (r == -1) {
-                PERROR("waitpid");
+                EPERROR("waitpid");
             }
         }
 	}
