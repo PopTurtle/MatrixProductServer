@@ -33,14 +33,10 @@ int main(void) {
     struct sigaction t_action;
     t_action.sa_handler = on_sig_term;
     t_action.sa_flags = 0;
-    if (sigemptyset(&t_action.sa_mask) == -1) {
+    if (sigfillset(&t_action.sa_mask) == -1) {
         EPERROR("sigemptyset");
     }
-
-    if (sigaddset(&t_action.sa_mask, SIGTERM)) {
-        EPERROR("sigaddset");
-    }
-
+    
     if (sigaction(SIGTERM, &t_action, NULL) == -1) {
         EPERROR("sigaction");
     }

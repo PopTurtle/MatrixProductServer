@@ -6,21 +6,35 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "communication.h"
 #include "matrix.h"
+
+#ifndef CLIENT_TIMEOUT
+#define CLIENT_TIMEOUT 5
+#endif
 
 #define EPERROR(funstr)                                                        \
     perror(funstr);                                                            \
     exit(EXIT_FAILURE);
 
 
+#define UPERROR(funstr, pipe_name)                                             \
+    perror(funstr);                                                            \
+    unlink(pipe_name);                                                         \
+    exit(EXIT_FAILURE);
+
+
+// Action a executer lorsque le client se termine. C'est à dire
+// à la fin de l'execution ou quand SIGALRM est recu (timeout).
+// Le parametre n'a aucun effet sur l'execution.
+void on_client_close(int);
+
+
 // Lis une valeur entiere depuis une chaine de caractere avec atoi.
 // Renvoie -1 en cas d'erreur et associe la valeur de atoi a res
-int get_arg(char *text, int *res) {
-    *res = atoi(text);
-    return *res - 1;
-}
+int get_arg(char *text, int *res);
 
 
 // Les parametres d'appels, formulés [nom = default_value],  sont les suivants:
@@ -57,14 +71,32 @@ int main(int argc, char *argv[]) {
         EPERROR("mkfifo");
     }
 
+    // Ajoute une action de terminaison du client
+    struct sigaction t_action;
+    t_action.sa_handler = on_client_close;
+    t_action.sa_flags = 0;
+    if (sigfillset(&t_action.sa_mask) == -1) {
+        EPERROR("sigemptyset");
+    }
+
+    if (sigaction(SIGTERM, &t_action, NULL) == -1) {
+        EPERROR("sigaction");
+    }
+
+    if (sigaction(SIGINT, &t_action, NULL) == -1) {
+        EPERROR("sigaction");
+    }
+
+    if (sigaction(SIGALRM, &t_action, NULL) == -1) {
+        EPERROR("sigaction");
+    }
+
     // Ouvre le tube de reponse (puis le ferme en écriture)
     int fd;
     pid_t pid_writer = fork();
     switch (pid_writer) {
         case -1:
-            EPERROR("fork");
-            unlink(response_pipe_n);
-            return EXIT_FAILURE;
+            UPERROR("fork", response_pipe_n);
         case 0:
             if (open(response_pipe_n, O_WRONLY) == -1) {
                 EPERROR("open");
@@ -73,18 +105,18 @@ int main(int argc, char *argv[]) {
         default:
             fd = open(response_pipe_n, O_RDONLY);
             if (fd == -1) {
-                EPERROR("open");
+                UPERROR("open", response_pipe_n);
             }
     }
 
     if (waitpid(pid_writer, NULL, 0) == -1) {
-        EPERROR("waitpid");
+        UPERROR("waitpid", response_pipe_n);
     }
 
     // Ouvre le tube des requetes
     int request_fd = open(SERVER_PIPE_NAME, O_WRONLY);
     if (request_fd == -1) {
-        EPERROR("open");
+        UPERROR("open", response_pipe_n);
     }
 
     // Prepare la requete
@@ -97,13 +129,15 @@ int main(int argc, char *argv[]) {
     size_t buf_size = MAT_PROD_SIZE(m, n, p);
     char *rbuff = malloc(buf_size);
     if (rbuff == NULL) {
-        EPERROR("malloc");
+        UPERROR("malloc", response_pipe_n);
     }
 
     int *mat_a = ((int *) rbuff);
     int *mat_b = ((int *) rbuff + m * n);
     int *mat_c = ((int *) rbuff + m * n + n * p);
 
+    // Initialise le timeout
+    alarm(CLIENT_TIMEOUT);
     if (receive_response(fd, rbuff, buf_size) == -1) {
         fprintf(stderr, "Error: Could not receive properly the server response");
     }
@@ -116,11 +150,26 @@ int main(int argc, char *argv[]) {
         print_matrix("Matrice C:", mat_c, m, p);
     }
 
+    // Unlink le tube de reponse afin de le supprimer lors de la terminaison
+    on_client_close(0);
 
-    // TEMPORAIRE -----------------------------------------------
+    return EXIT_SUCCESS;
+}
+
+int get_arg(char *text, int *res) {
+    *res = atoi(text);
+    return *res - 1;
+}
+
+void on_client_close([[maybe_unused]] int) {
+    // Recupere le nom du tube de reponse
+    char response_pipe_n[RESPONSE_PIPE_NAME_BUFF_SIZE];
+    response_pipe_name(response_pipe_n, getpid());
+
+    // Unlink le tube
     if (unlink(response_pipe_n) == -1) {
         EPERROR("unlink");
     }
 
-    return EXIT_SUCCESS;
+    exit(EXIT_FAILURE);
 }
